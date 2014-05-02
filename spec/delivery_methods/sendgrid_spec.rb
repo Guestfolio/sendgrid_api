@@ -109,11 +109,45 @@ module Mail
         end
       end
 
+      context "to recipients with encoded names" do
+        let(:to_mail)  {
+          Mail.new(
+            from:     '\"José Publico\" <jose@address.com>',
+            to:       '\"José Publico\" <to@address.com>',
+            bcc:      '\"José Publico\" <bcc@address.com>',
+            subject:  "Rspec test"
+          ) do
+            text_part { body 'This is plain text' }
+          end
+        }
+
+        it "should deliver successfully" do
+          subject.deliver!(to_mail).should == success
+        end
+      end
+
+      context "to recipients with Mail::Address values" do
+        let(:from)    { Mail::Address.new("to@address.com").tap { |m| m.display_name = "José Publico" } }
+        let(:to_mail) {
+          Mail.new(
+            from:     from,
+            to:       '"Tester" <to@address.com>',
+            subject:  "Rspec test"
+          ) do
+            text_part { body 'This is plain text' }
+          end
+        }
+
+        it "should deliver successfully" do
+          subject.deliver!(to_mail).should == success
+        end
+      end
+
       context "BCC recipients" do
         let(:bcc_mail)  {
           Mail.new(
             from:     '"Tester" <from@address.com>',
-            to:       '"Tester <to@address.com>"',
+            to:       '"Tester" <to@address.com>',
             subject:  "Rspec test",
             bcc:      ["Tester <bcc@address.com>", "Another <and@address.com>"],
           ) do
