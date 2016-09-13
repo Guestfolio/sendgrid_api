@@ -1,3 +1,4 @@
+require 'simpleidn'
 begin
   require 'mail/check_delivery_params'
 rescue LoadError
@@ -103,6 +104,22 @@ module Mail
     #
     def parse_email_address(email)
       Array(email).collect { |email| Mail::Address.new(email) }
+    rescue Mail::Field::ParseError => e
+      punycode_email(email)
     end
+
+    # convert email domain names containing unicode characters to punycode
+    # @param [String] email
+    # @return [Array] Mail::Address
+    #
+    def punycode_email(email)
+      Array(email).collect do |email|
+        email_part, display_name = email.split(/\<(.*?)\>/).reverse
+        email = Mail::Address.new(SimpleIDN.to_ascii(email_part))
+        email.tap{ |m| m.display_name = display_name.tr!('"','').strip!} if display_name
+        email
+      end
+    end
+
   end
 end
