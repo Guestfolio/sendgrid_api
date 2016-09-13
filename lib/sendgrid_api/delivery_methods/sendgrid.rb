@@ -24,20 +24,20 @@ module Mail
       # Extract the recipients, allows array of strings, array of addresses or comma separated string
       to = mail[:to].value
       to = to.split(",").collect(&:strip) if to.is_a? String
-      to = Array(to).collect { |to| Mail::Address.new(to) }
 
+      to = parse_email_address(to)
       if (mail[:bcc])
         bcc = mail[:bcc].value
         bcc = bcc.split(",").collect(&:strip) if bcc.is_a? String
-        bcc = Array(bcc).collect { |bcc| Mail::Address.new(bcc).address }
+        bcc = parse_email_address(bcc).map(&:address)
       end
 
       # Set the Return-Path header if we have a from email address
-      from = Mail::Address.new(mail[:from].value)
+      from = parse_email_address(mail[:from].value).first
       mail.header["Return-Path"] = from.address if mail.header["Return-Path"].nil?
 
       # Put Reply-To on the headers as Sendgrid Web API only accepts an address
-      mail.header["Reply-To"] = Mail::Address.new(mail[:reply_to].value) if (mail[:reply_to])
+      mail.header["Reply-To"] = parse_email_address(mail[:reply_to].value).first if (mail[:reply_to])
 
       # Call .to_s to force into JSON as Mail < 2.5 doesn't
       xsmtp = parse_xsmtpapi_headers(mail)
@@ -95,6 +95,14 @@ module Mail
     #
     def parse_xsmtpapi_headers(mail)
       mail.header['X-SMTPAPI'].value.to_s if mail.header['X-SMTPAPI']
+    end
+
+    # Parse the email address, and rescue any Parse errors
+    # @param [String] email
+    # @return [Array] Mail::Address
+    #
+    def parse_email_address(email)
+      Array(email).collect { |email| Mail::Address.new(email) }
     end
   end
 end
