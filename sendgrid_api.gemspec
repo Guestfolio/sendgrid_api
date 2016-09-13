@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "appraisal"
   s.add_development_dependency "pry"
   s.add_development_dependency "pry-byebug"
+  s.add_development_dependency "simpleidn"
 
   s.add_runtime_dependency "mail"
   s.add_runtime_dependency "faraday_middleware"
