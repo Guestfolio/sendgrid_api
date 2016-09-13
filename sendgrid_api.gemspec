@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
 
+
   s.add_development_dependency "rspec"
   s.add_development_dependency "vcr"
   s.add_development_dependency "webmock"
@@ -28,4 +29,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "mail"
   s.add_runtime_dependency "faraday_middleware"
+  s.add_runtime_dependency "simpleidn"
 end
