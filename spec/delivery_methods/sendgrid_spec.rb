@@ -110,7 +110,7 @@ module Mail
         end
       end
 
-      context "for encoded addresses" do
+      context "for encoded display name" do
         let(:from) { Mail::Address.new("from@address.com").tap { |m| m.display_name = "José Publico" }.encoded }
         let(:mail) {
           Mail.new(
@@ -122,23 +122,45 @@ module Mail
           end
         }
 
-        context "addresses with non-ascii string addresses" do
+        context "addresses with non-ascii display name" do
           let(:to) { '"José Publico" <to@address.com>' }
 
-          it "should raise an exception" do
-            expect{ subject.deliver!(mail) }.to raise_error Mail::Field::ParseError
+          it "should send successfully" do
+            expect(subject.client).to receive(:post).with(
+              "send",
+              nil,
+              hash_including(
+                to:       ["to@address.com"],
+                toname:   ["José Publico"],
+                from:     "from@address.com",
+                fromname: "José Publico"
+              )
+            ).and_return(success)
+
+            expect(subject.deliver!(mail)).to eq success
           end
         end
 
-        context "addresses with Mail::Address addresses" do
+        context "addresses with Mail::Address addresses non-ascii display name" do
           let(:to) { Mail::Address.new("to@address.com").tap { |m| m.display_name = "José Publico" } }
 
-          it "should raise an exception" do
-            expect{ subject.deliver!(mail) }.to raise_error Mail::Field::ParseError
+          it "should send successfully" do
+            expect(subject.client).to receive(:post).with(
+              "send",
+              nil,
+              hash_including(
+                to:       ["to@address.com"],
+                toname:   ["José Publico"],
+                from:     "from@address.com",
+                fromname: "José Publico"
+              )
+            ).and_return(success)
+
+            expect(subject.deliver!(mail)).to eq success
           end
         end
 
-        context "addresses with encoded string addresses" do
+        context "addresses with Mail::Address with encoded non-ascii display name" do
           let(:to) { Mail::Address.new("to@address.com").tap { |m| m.display_name = "José Publico" }.encoded }
 
           it "should send successfully" do
@@ -156,6 +178,79 @@ module Mail
             expect(subject.deliver!(mail)).to eq success
           end
         end
+
+        context "addresses with non-ascii domain name" do
+          let(:to) { "jose@josépublic.com" }
+
+          it "should punycode the domain and send successfully" do
+            expect(subject.client).to receive(:post).with(
+              "send",
+              nil,
+              hash_including(
+                to:       ["xn--jose@jospublic-ikb.com"],
+                from:     "from@address.com",
+                fromname: "José Publico"
+              )
+            ).and_return(success)
+
+            expect(subject.deliver!(mail)).to eq success
+          end
+        end
+
+        context "addresses with non-ascii domain name and non-ascii local" do
+          let(:to) { "jöse@josépublic.com" }
+
+          it "should punycode the domain and send successfully" do
+            expect(subject.client).to receive(:post).with(
+              "send",
+              nil,
+              hash_including(
+                to:       ["xn--jse@jospublic-hhb2q.com"],
+                from:     "from@address.com",
+                fromname: "José Publico"
+              )
+            ).and_return(success)
+
+            expect(subject.deliver!(mail)).to eq success
+          end
+        end
+
+        context "addresses with an ascii domain name and non-ascii local" do
+          let(:to) { "jöse@josepublic.com" }
+
+          it "should punycode the domain and local and send successfully" do
+            expect(subject.client).to receive(:post).with(
+              "send",
+              nil,
+              hash_including(
+                to:       ["xn--jse@josepublic-vpb.com"],
+                from:     "from@address.com",
+                fromname: "José Publico"
+              )
+            ).and_return(success)
+
+            expect(subject.deliver!(mail)).to eq success
+          end
+        end
+
+        # context "addresses with non-ascii domain name and non-ascii display name" do
+        #   let(:to) { '"andrè gïant" <to@àddress.com>' }
+        #
+        #   it "should punycode the domain and send successfully" do
+        #     expect(subject.client).to receive(:post).with(
+        #       "send",
+        #       nil,
+        #       hash_including(
+        #         to:       ["xn--to@ddress-s1a.com"],
+        #         toname:   ["andrè gïant"],
+        #         from:     "from@address.com",
+        #         fromname: "José Publico"
+        #       )
+        #     ).and_return(success)
+        #
+        #     expect(subject.deliver!(mail)).to eq success
+        #   end
+        # end
       end
 
       context "BCC recipients" do
