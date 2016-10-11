@@ -116,7 +116,9 @@ module Mail
       Array(email).collect do |email|
         email_part, display_name = email.split(/\s*<(.+?)>\z/).reverse
         email = Mail::Address.new(SimpleIDN.to_ascii(email_part))
-        email.tap{ |m| m.display_name = display_name.tr!('"','').strip!} if display_name
+        email.tap{ |m|
+          m.display_name = display_name[1..-2]
+        } if display_name && display_name.start_with?("\"")
         email
       end
     end

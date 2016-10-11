@@ -234,7 +234,7 @@ module Mail
         end
 
         context "addresses with non-ascii domain name and non-ascii display name" do
-          let(:to) { '"andrè gïant" <to@àddress.com>' }
+          let(:to) { '"andrè "the" gïant" <to@àddress.com>' }
 
           it "should punycode the domain and send successfully" do
             expect(subject.client).to receive(:post).with(
@@ -242,7 +242,7 @@ module Mail
               nil,
               hash_including(
                 to:       ["xn--to@ddress-s1a.com"],
-                toname:   ["andrè gïant"],
+                toname:   ["andrè \"the\" gïant"],
                 from:     "from@address.com",
                 fromname: "José Publico"
               )
