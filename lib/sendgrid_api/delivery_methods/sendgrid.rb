@@ -1,12 +1,8 @@
 require 'simpleidn'
-begin
-  require 'mail/check_delivery_params'
-rescue LoadError
-end
+require 'mail/check_delivery_params'
 
 module Mail
   class Sendgrid
-    include ::Mail::CheckDeliveryParams rescue nil
 
     attr_accessor :settings, :client, :xsmtp
 
@@ -20,7 +16,7 @@ module Mail
     end
 
     def deliver!(mail)
-      check_delivery_params(mail)
+      Mail::CheckDeliveryParams.check(mail)
 
       # Extract the recipients, allows array of strings, array of addresses or comma separated string
       to = mail[:to].value
@@ -59,22 +55,6 @@ module Mail
       raise SendgridApi::Error::DeliveryError.new(result.message) if result.error?
       return result
     end
-
-    # Simple check of required Mail params if superclass doesn't exist from 2.5.0
-    # @param [Mail] mail
-    #
-    def check_delivery_params(mail)
-      if defined?(super)
-        super
-      else
-        blank = proc { |t| t.nil? || t.empty? }
-        if [mail.from, mail.to].any?(&blank) || [mail.html_part, mail.text_part].all?(&blank)
-          raise ArgumentError.new("Missing required mail part")
-        end
-      end
-    end
-
-    private
 
     # Convert Mail::Header fields to Hash and remove specific params
     # @param [Mail] mail
