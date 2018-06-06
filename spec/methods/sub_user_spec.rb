@@ -138,6 +138,12 @@ module SendgridApi
       end
     end
 
+    describe ".delete", vcr: true do
+      it "should delete the subuser account" do
+        expect(subject.delete(user).success?).to eq true
+      end
+    end
+
     describe ".setup_whitelabel", vcr: true do
       it "should update the subuser whitelabel domain" do
         expect(subject.setup_whitelabel(user.merge(mail_domain: "email.test.net")).success?).to eq true
