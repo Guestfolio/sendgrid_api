@@ -92,6 +92,12 @@ module SendgridApi
       access("disable", options)
     end
 
+    # Delete a subuser
+    #
+    def delete(options ={})
+      access("delete", options)
+    end
+
     # Enable website access to subuser
     #
     def website_enable(options = {})
