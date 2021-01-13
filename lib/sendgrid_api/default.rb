@@ -32,7 +32,7 @@ module SendgridApi
       def connection_options
         {
           headers: {
-            accept: 'application/#{format}',
+            accept: "application/#{format}",
             accept_charset: 'utf-8',
             user_agent: "SendgridApi Ruby Gem v#{SendgridApi::VERSION}"
           },
