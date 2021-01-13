@@ -116,7 +116,9 @@ module SendgridApi
     # @return [Faraday::Connection]
     #
     def connection
-      @connection ||= Faraday.new(@endpoint, @connection_options, &@middleware)
+      @connection ||= \
+        Faraday.new(@endpoint, @connection_options, &@middleware)
+               .tap { |c| c.headers['Authorization'] = "Bearer #{api_key}" }
     end
   end
 end
